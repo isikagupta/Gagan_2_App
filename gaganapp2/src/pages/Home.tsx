@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import absLogo from '../assets/ABS_Logo.png';
 
 const Home: React.FC = () =>
 {
+    const navigate = useNavigate();
     const [ activeTab, setActiveTab ] = useState('project');
-    const [ selectedFolder, setSelectedFolder ] = useState('sample');
-    const [ uploadedFile, setUploadedFile ] = useState('proll.cfg');
-    const [ uploadStatus, setUploadStatus ] = useState('File Successfully Uploaded');
-
-    const handleSelectFolder = () =>
-    {
-        console.log('Select folder clicked');
-    };
+    const [ selectedFolder ] = useState('sample');
+    const [ uploadedFile ] = useState('proll.cfg');
+    const [ uploadStatus ] = useState('File Successfully Uploaded');
 
     const handleLoadControlFile = () =>
     {
@@ -21,7 +18,20 @@ const Home: React.FC = () =>
 
     const handleViewUserInput = () =>
     {
-        console.log('View user input clicked');
+        // Navigate to Project page with input tab active
+        navigate('/project', { state: { activeTab: 'input' } });
+    };
+
+    const handleTabClick = (tab: string) =>
+    {
+        if (tab === 'input')
+        {
+            // Navigate to Project page when User Data Input tab is clicked
+            navigate('/project', { state: { activeTab: 'input' } });
+        } else
+        {
+            setActiveTab(tab);
+        }
     };
 
     return (
@@ -29,7 +39,9 @@ const Home: React.FC = () =>
             <div className="home-content">
                 {/* Main Title */}
                 <div className="title-section">
-                    <h1 className="main-title">Welcome to <img src={absLogo} alt="ABS Logo" className="abs-logo-img" /> | PROLL App</h1>
+                    <h1 className="main-title">
+                        Welcome to <img src={absLogo} alt="ABS Logo" className="abs-logo-img" /> | PROLL App
+                    </h1>
                 </div>
 
                 {/* Project Card */}
@@ -38,13 +50,13 @@ const Home: React.FC = () =>
                     <div className="card-tabs">
                         <button
                             className={`tab ${activeTab === 'project' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('project')}
+                            onClick={() => handleTabClick('project')}
                         >
                             Project
                         </button>
                         <button
                             className={`tab ${activeTab === 'input' ? 'active' : ''}`}
-                            onClick={() => setActiveTab('input')}
+                            onClick={() => handleTabClick('input')}
                         >
                             User Data Input
                         </button>
@@ -61,7 +73,6 @@ const Home: React.FC = () =>
                                     <span className="folder-icon">📁</span>
                                     <span className="file-name">{selectedFolder}</span>
                                     <span className="arrow-icon">›</span>
-                                    {/* <span className="check-icon">✓</span> */}
                                 </div>
                             </div>
 
@@ -70,7 +81,6 @@ const Home: React.FC = () =>
                                 <div className="file-item">
                                     <span className="file-icon">📄</span>
                                     <span className="file-name">{uploadedFile}</span>
-                                    {/* <span className="check-icon">✓</span> */}
                                 </div>
                                 <button
                                     className="load-control-btn"
@@ -95,12 +105,6 @@ const Home: React.FC = () =>
                                     View User Data Input
                                 </button>
                             </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'input' && (
-                        <div className="card-body">
-                            <p>User Data Input content coming soon...</p>
                         </div>
                     )}
                 </div>
