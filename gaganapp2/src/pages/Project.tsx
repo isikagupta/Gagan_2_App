@@ -1,245 +1,501 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import './Project.css';
+import
+{
+    Box,
+    Tabs,
+    Tab,
+    Typography,
+    TextField,
+    Button,
+    IconButton,
+    Radio,
+    RadioGroup,
+    FormControlLabel,
+    Paper,
+} from '@mui/material';
+import SaveIcon from '@mui/icons-material/Save';
+import DeleteIcon from '@mui/icons-material/Delete';
+import FolderIcon from '@mui/icons-material/Folder';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+
+interface VesselConditions
+{
+    draftAftPeak: string;
+    draftForePeak: string;
+    gm: string;
+    heading: string;
+    speed: string;
+    maxAllowedRoll: string;
+}
+
+interface SeaStateData
+{
+    meanWaveDirection: string;
+    significantWaveHeight: string;
+    wavePeriod: string;
+}
+
+interface LocationState
+{
+    activeTab?: string;
+    vesselConditions?: Partial<VesselConditions>;
+    seaState?: Partial<SeaStateData>;
+}
 
 const Project: React.FC = () =>
 {
     const location = useLocation();
-    const initialTab = (location.state as { activeTab?: string })?.activeTab || 'project';
-    const [ activeTab, setActiveTab ] = useState(initialTab);
-    const [ caseId, setCaseId ] = useState('170385');
+    const state = location.state as LocationState | null;
+    const initialTab = state?.activeTab || 'project';
+    const [ activeTab, setActiveTab ] = useState(initialTab === 'input' ? 1 : 0);
+    const [ caseId, setCaseId ] = useState('');
+    const [ deleteCaseId, setDeleteCaseId ] = useState('');
+    const [ reportType, setReportType ] = useState('current');
 
-    // Sample data
-    const vesselConditions = [
-        { label: 'Draft Aft Peak', value: 10, unit: '[m]', range: 'value range [0-40 m]' },
-        { label: 'Draft Fore Peak', value: 10, unit: '[m]', range: 'value range [0-40 m]' },
-        { label: 'GM', value: 3, unit: '[m]', range: 'value range [0-20 m]' },
-        { label: 'Heading', value: 18, unit: '[degree]', range: '0 absolute from the North' },
-        { label: 'Speed', value: 12, unit: '[kt]', range: 'value range [0-30 kt]' },
-        { label: 'Max Allowed Roll', value: 20, unit: '[degree]', range: 'value range [0-35 degree]' }
+    const [ vesselConditions, setVesselConditions ] = useState<VesselConditions>({
+        draftAftPeak: state?.vesselConditions?.draftAftPeak || '',
+        draftForePeak: state?.vesselConditions?.draftForePeak || '',
+        gm: state?.vesselConditions?.gm || '',
+        heading: state?.vesselConditions?.heading || '',
+        speed: state?.vesselConditions?.speed || '',
+        maxAllowedRoll: state?.vesselConditions?.maxAllowedRoll || '',
+    });
+
+    const [ seaStateData, setSeaStateData ] = useState<SeaStateData>({
+        meanWaveDirection: state?.seaState?.meanWaveDirection || '',
+        significantWaveHeight: state?.seaState?.significantWaveHeight || '',
+        wavePeriod: state?.seaState?.wavePeriod || '',
+    });
+
+    const handleVesselChange = (field: keyof VesselConditions) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    {
+        setVesselConditions(prev => ({ ...prev, [ field ]: e.target.value }));
+    };
+
+    const handleSeaStateChange = (field: keyof SeaStateData) => (e: React.ChangeEvent<HTMLInputElement>) =>
+    {
+        setSeaStateData(prev => ({ ...prev, [ field ]: e.target.value }));
+    };
+
+    const vesselConditionsConfig = [
+        { label: 'Draft Aft Peak', field: 'draftAftPeak' as keyof VesselConditions, unit: '[m]', range: 'value range [0-40 m]' },
+        { label: 'Draft Fore Peak', field: 'draftForePeak' as keyof VesselConditions, unit: '[m]', range: 'value range [0-40 m]' },
+        { label: 'GM', field: 'gm' as keyof VesselConditions, unit: '[m]', range: 'value range [0-20 m]' },
+        { label: 'Heading', field: 'heading' as keyof VesselConditions, unit: '[degree]', range: '0 absolute from the North' },
+        { label: 'Speed', field: 'speed' as keyof VesselConditions, unit: '[kt]', range: 'value range [0-30 kt]' },
+        { label: 'Max Allowed Roll', field: 'maxAllowedRoll' as keyof VesselConditions, unit: '[degree]', range: 'value range [0-35 degree]' },
     ];
 
-    const seaState = [
-        { label: 'Mean Wave Direction', value: 130, unit: '[degree]', range: '0 absolute from the North in incoming direction' },
-        { label: 'Significant Wave Height', value: 5, unit: '[m]', range: 'value range [0-20 m]' },
-        { label: 'Wave Period', value: 10, unit: '[s]', range: '' }
+    const seaStateConfig = [
+        { label: 'Mean Wave Direction', field: 'meanWaveDirection' as keyof SeaStateData, unit: '[degree]', range: '0 absolute from the North in incoming direction' },
+        { label: 'Significant Wave Height', field: 'significantWaveHeight' as keyof SeaStateData, unit: '[m]', range: 'value range [0-20 m]' },
+        { label: 'Wave Period', field: 'wavePeriod' as keyof SeaStateData, unit: '[s]', range: '' },
     ];
 
     const savedCases = [
-        { id: '100316', color: 'green' },
-        { id: '203495', color: 'green' },
-        { id: '341197', color: 'green' },
-        { id: '202325', color: 'pink' },
-        { id: '281130', color: 'pink' },
-        { id: '800490', color: 'pink' }
+        { id: '100316', color: '#4caf50' },
+        { id: '203495', color: '#4caf50' },
+        { id: '341197', color: '#4caf50' },
+        { id: '202325', color: '#e91e63' },
+        { id: '281130', color: '#e91e63' },
+        { id: '800490', color: '#e91e63' },
     ];
 
     return (
-        <div className="project-container">
-            {/* Left Sidebar */}
-            <div className="project-sidebar">
-                {/* Tabs at top */}
-                <div className="project-tabs">
-                    <button
-                        className={`project-tab ${activeTab === 'project' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('project')}
-                    >
-                        Project
-                    </button>
-                    <button
-                        className={`project-tab ${activeTab === 'input' ? 'active' : ''}`}
-                        onClick={() => setActiveTab('input')}
-                    >
-                        User Data Input
-                    </button>
-                </div>
+        <Box
+            sx={{
+                display: 'flex',
+                width: '100%',
+                height: '100%',
+                background: 'url(src/assets/Homebg.png) no-repeat center center',
+                backgroundSize: 'cover',
+                p: 3,
+                gap: 3,
+            }}
+        >
+            <Paper
+                elevation={3}
+                sx={{
+                    width: '440px',
+                    minWidth: '440px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    borderRadius: 3,
+                    overflow: 'hidden',
+                }}
+            >
+                <Tabs
+                    value={activeTab}
+                    onChange={(_e, newValue) => setActiveTab(newValue)}
+                    sx={{
+                        borderBottom: 1,
+                        borderColor: 'divider',
+                        bgcolor: 'white',
+                        '& .MuiTab-root': {
+                            textTransform: 'none',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            '&.Mui-selected': {
+                                color: '#2196f3',
+                                fontWeight: 600,
+                            },
+                        },
+                        '& .MuiTabs-indicator': {
+                            backgroundColor: '#2196f3',
+                            height: 3,
+                        },
+                    }}
+                >
+                    <Tab label="Project" />
+                    <Tab label="User Data Input" />
+                </Tabs>
 
-                {/* Sidebar Content - Changes based on active tab */}
-                <div className="sidebar-content">
-                    {/* USER DATA INPUT TAB CONTENT */}
-                    {activeTab === 'input' && (
+                <Box
+                    sx={{
+                        flex: 1,
+                        p: 2,
+                        overflowY: 'auto',
+                        bgcolor: '#f5f7fa',
+                    }}
+                >
+                    {activeTab === 1 && (
                         <>
-                            {/* Vessel Operation Conditions */}
-                            <div className="section">
-                                <h3 className="section-title">Vessel Operation Conditions</h3>
-                                <div className="section-content">
-                                    {vesselConditions.map((item, index) => (
-                                        <div key={index} className="input-row-wrapper">
-                                            <div className="input-row">
-                                                <label className="input-label">{item.label}</label>
-                                                <div className="input-group">
-                                                    <span className="indicator">✓</span>
-                                                    <div className="input-with-unit">
-                                                        <input
-                                                            type="number"
-                                                            className="input-field"
-                                                            value={item.value}
-                                                            readOnly
-                                                        />
-                                                        <span className="input-unit">{item.unit}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="input-range">{item.range}</div>
-                                        </div>
+                            <Box sx={{ mb: 2 }}>
+                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#333' }}>
+                                    Vessel Operation Conditions
+                                </Typography>
+                                <Paper sx={{ p: 2, border: '1px solid #e0e0e0' }}>
+                                    {vesselConditionsConfig.map((item, index) => (
+                                        <Box key={index} sx={{ mb: index < vesselConditionsConfig.length - 1 ? 1 : 0 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                                                <Typography variant="body2" sx={{ flex: 1, fontWeight: 500 }}>
+                                                    {item.label}
+                                                </Typography>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <CheckCircleIcon sx={{ fontSize: 16, color: vesselConditions[ item.field ] ? '#4caf50' : '#ccc' }} />
+                                                    <TextField
+                                                        size="small"
+                                                        value={vesselConditions[ item.field ]}
+                                                        onChange={handleVesselChange(item.field)}
+                                                        InputProps={{
+                                                            endAdornment: (
+                                                                <Typography variant="caption" sx={{ color: '#666' }}>
+                                                                    {item.unit}
+                                                                </Typography>
+                                                            ),
+                                                            sx: { width: '120px', fontSize: '0.85rem' },
+                                                        }}
+                                                        sx={{
+                                                            '& .MuiInputBase-input': {
+                                                                textAlign: 'center',
+                                                                fontSize: '0.85rem',
+                                                            },
+                                                        }}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                            {item.range && (
+                                                <Typography
+                                                    variant="caption"
+                                                    sx={{
+                                                        display: 'block',
+                                                        color: '#999',
+                                                        fontStyle: 'italic',
+                                                        textAlign: 'right',
+                                                        fontSize: '0.65rem',
+                                                    }}
+                                                >
+                                                    {item.range}
+                                                </Typography>
+                                            )}
+                                        </Box>
                                     ))}
-                                </div>
-                            </div>
+                                </Paper>
+                            </Box>
 
-                            {/* Sea State */}
-                            <div className="section">
-                                <h3 className="section-title">Sea State</h3>
-                                <div className="section-content">
-                                    {seaState.map((item, index) => (
-                                        <div key={index} className="input-row-wrapper">
-                                            <div className="input-row">
-                                                <label className="input-label">{item.label}</label>
-                                                <div className="input-group">
-                                                    <span className="indicator">✓</span>
-                                                    <div className="input-with-unit">
-                                                        <input
-                                                            type="number"
-                                                            className="input-field"
-                                                            value={item.value}
-                                                            readOnly
-                                                        />
-                                                        <span className="input-unit">{item.unit}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {item.range && <div className="input-range">{item.range}</div>}
-                                        </div>
+                            <Box sx={{ mb: 2 }}>
+                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#333' }}>
+                                    Sea State
+                                </Typography>
+                                <Paper sx={{ p: 2, border: '1px solid #e0e0e0' }}>
+                                    {seaStateConfig.map((item, index) => (
+                                        <Box key={index} sx={{ mb: index < seaStateConfig.length - 1 ? 1 : 0 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                                                <Typography variant="body2" sx={{ flex: 1, fontWeight: 500 }}>
+                                                    {item.label}
+                                                </Typography>
+                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                    <CheckCircleIcon sx={{ fontSize: 16, color: seaStateData[ item.field ] ? '#4caf50' : '#ccc' }} />
+                                                    <TextField
+                                                        size="small"
+                                                        value={seaStateData[ item.field ]}
+                                                        onChange={handleSeaStateChange(item.field)}
+                                                        InputProps={{
+                                                            endAdornment: (
+                                                                <Typography variant="caption" sx={{ color: '#666' }}>
+                                                                    {item.unit}
+                                                                </Typography>
+                                                            ),
+                                                            sx: { width: '120px', fontSize: '0.85rem' },
+                                                        }}
+                                                        sx={{
+                                                            '& .MuiInputBase-input': {
+                                                                textAlign: 'center',
+                                                                fontSize: '0.85rem',
+                                                            },
+                                                        }}
+                                                    />
+                                                </Box>
+                                            </Box>
+                                            {item.range && (
+                                                <Typography
+                                                    variant="caption"
+                                                    sx={{
+                                                        display: 'block',
+                                                        color: '#999',
+                                                        fontStyle: 'italic',
+                                                        textAlign: 'right',
+                                                        fontSize: '0.65rem',
+                                                    }}
+                                                >
+                                                    {item.range}
+                                                </Typography>
+                                            )}
+                                        </Box>
                                     ))}
-                                </div>
-                            </div>
+                                </Paper>
+                            </Box>
 
-                            {/* Case Files */}
-                            <div className="section">
-                                <div className="section-header">
-                                    <h3 className="section-title">Case Files</h3>
-                                </div>
-                                <div className="section-content">
-                                    <div className="case-row">
-                                        <label className="case-label">Save to case ID</label>
-                                        <input
-                                            type="text"
-                                            className="case-input"
+                            <Box>
+                                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: '#333' }}>
+                                    Case Files
+                                </Typography>
+                                <Paper sx={{ p: 2, border: '1px solid #e0e0e0' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                                        <Typography variant="body2" sx={{ minWidth: '120px', fontSize: '0.8rem' }}>
+                                            Save to case ID
+                                        </Typography>
+                                        <TextField
+                                            size="small"
                                             value={caseId}
                                             onChange={(e) => setCaseId(e.target.value)}
+                                            sx={{ flex: 1, fontSize: '0.85rem' }}
                                         />
-                                        <button className="save-btn">💾</button>
-                                    </div>
-                                    <div className="case-row">
-                                        <label className="case-label">Delete saved case</label>
-                                        <input
-                                            type="text"
-                                            className="case-input"
-                                            placeholder=""
-                                            readOnly
+                                        <IconButton size="small" sx={{ bgcolor: '#28a745', color: 'white', '&:hover': { bgcolor: '#218838' } }}>
+                                            <SaveIcon fontSize="small" />
+                                        </IconButton>
+                                    </Box>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Typography variant="body2" sx={{ minWidth: '120px', fontSize: '0.8rem' }}>
+                                            Delete saved case
+                                        </Typography>
+                                        <TextField
+                                            size="small"
+                                            value={deleteCaseId}
+                                            onChange={(e) => setDeleteCaseId(e.target.value)}
+                                            placeholder="Enter case ID"
+                                            sx={{ flex: 1, fontSize: '0.85rem' }}
                                         />
-                                        <button className="delete-btn">🗑️</button>
-                                    </div>
-                                </div>
-                            </div>
+                                        <IconButton size="small" sx={{ border: '1px solid #ddd', '&:hover': { borderColor: '#dc3545', color: '#dc3545' } }}>
+                                            <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                    </Box>
+                                </Paper>
+                            </Box>
                         </>
                     )}
+                </Box>
+            </Paper>
 
-                    {/* PROJECT TAB CONTENT */}
-                </div>
-            </div>
+            <Paper
+                elevation={3}
+                sx={{
+                    flex: 1,
+                    maxWidth: '1650px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    borderRadius: 3,
+                    overflow: 'hidden',
+                }}
+            >
+                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                    <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
+                        <Typography
+                            sx={{
+                                display: 'inline-block',
+                                py: 1.5,
+                                px: 2,
+                                color: '#2196f3',
+                                fontSize: '0.875rem',
+                                fontWeight: 1000,
+                                borderBottom: '5px solid #2196f3',
+                            }}
+                        >
+                            Plot Area
+                        </Typography>
+                    </Box>
 
-            {/* Main Content Area */}
-            <div className="project-main">
-                {/* Plot Area */}
-                <div className="plot-section">
-                    <div className="plot-header">
-                        <span className="plot-tab">Plot Area</span>
-                    </div>
-                    <div className="plot-canvas">
-                        {/* Y-Axis Label */}
-                        <div className="y-axis-container">
-                            <div className="y-axis-label">Roll [deg]</div>
-                            <div className="y-axis-scale">
-                                {[30, 25, 20, 15, 10, 5, 0].map(val => (
-                                    <div key={val} className="scale-mark">{val}</div>
+                    <Box
+                        sx={{
+                            flex: 1,
+                            minHeight: '400px',
+                            bgcolor: '#576574',
+                            position: 'relative',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            p: 4,
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                position: 'absolute',
+                                left: '1rem',
+                                top: '50%',
+                                transform: 'translateY(-50%)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                            }}
+                        >
+                            <Typography
+                                sx={{
+                                    color: 'white',
+                                    fontSize: '0.85rem',
+                                    fontWeight: 500,
+                                    writingMode: 'vertical-rl',
+                                    transform: 'rotate(180deg)',
+                                }}
+                            >
+                                Roll [deg]
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '300px' }}>
+                                {[ 30, 25, 20, 15, 10, 5, 0 ].map((val) => (
+                                    <Typography key={val} sx={{ color: 'white', fontSize: '0.75rem' }}>
+                                        {val}
+                                    </Typography>
                                 ))}
-                            </div>
-                        </div>
+                            </Box>
+                        </Box>
 
-                        {/* Polar Chart */}
-                        <div className="polar-chart-container">
-                            <div className="polar-chart">
-                                {/* Compass Labels */}
-                                <div className="compass-label north">N</div>
-                                <div className="compass-label east">E</div>
-                                <div className="compass-label south">S</div>
-                                <div className="compass-label west">W</div>
+                        <Box className="polar-chart-container">
+                            <Box className="polar-chart">
+                                <Typography className="compass-label north">N</Typography>
+                                <Typography className="compass-label east">E</Typography>
+                                <Typography className="compass-label south">S</Typography>
+                                <Typography className="compass-label west">W</Typography>
+                            </Box>
+                        </Box>
 
-                                {/* Degree Labels */}
-                                <div className="degree-label deg-30">30°</div>
-                                <div className="degree-label deg-60">60°</div>
-                                <div className="degree-label deg-120">120°</div>
-                                <div className="degree-label deg-150">150°</div>
-                                <div className="degree-label deg-210">210°</div>
-                                <div className="degree-label deg-240">240°</div>
-                                <div className="degree-label deg-300">300°</div>
-                                <div className="degree-label deg-330">330°</div>
+                        <Typography
+                            sx={{
+                                position: 'absolute',
+                                left: '4rem',
+                                top: '50%',
+                                transform: 'translateY(-50%) rotate(-90deg)',
+                                color: 'white',
+                                fontSize: '0.8rem',
+                            }}
+                        >
+                            Max roll [deg]
+                        </Typography>
+                    </Box>
+                </Box>
 
-                                {/* Speed Labels */}
-                                <div className="speed-label speed-25">25kn</div>
-                                <div className="speed-label speed-20">20kn</div>
-                                <div className="speed-label speed-15">15kn</div>
-                                <div className="speed-label speed-10">10kn</div>
-                                <div className="speed-label speed-5">5kn</div>
-                            </div>
-                        </div>
-
-                        {/* Max Roll Label */}
-                        <div className="max-roll-label">Max roll [deg]</div>
-                    </div>
-                </div>
-
-                {/* Saved Cases Section */}
-                <div className="saved-cases-section">
-                    <div className="saved-cases-header">
-                        <span className="folder-icon">📁</span>
-                        <h3 className="saved-cases-title">Saved Cases</h3>
-                    </div>
-                    <div className="saved-cases-content">
-                        <button className="nav-arrow">‹</button>
-                        <div className="saved-cases-list">
+                <Box sx={{ bgcolor: '#f8f9fa', p: 2, borderTop: 1, borderColor: 'divider' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                        <FolderIcon sx={{ color: '#666' }} />
+                        <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                            Saved Cases
+                        </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <IconButton size="small" sx={{ bgcolor: 'white', border: '1px solid #ddd' }}>
+                            <ChevronLeftIcon />
+                        </IconButton>
+                        <Box sx={{ display: 'flex', gap: 2, flex: 1, overflowX: 'auto', py: 1 }}>
                             {savedCases.map((item, index) => (
-                                <div key={index} className="case-tile-box">
-                                    <div className={`case-tile-icon ${item.color}`}></div>
-                                    <span className="case-tile-id">{item.id}</span>
-                                </div>
+                                <Paper
+                                    key={index}
+                                    sx={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        alignItems: 'center',
+                                        gap: 1,
+                                        p: 1.5,
+                                        minWidth: '80px',
+                                        cursor: 'pointer',
+                                        '&:hover': {
+                                            borderColor: '#2196f3',
+                                            boxShadow: 2,
+                                        },
+                                    }}
+                                >
+                                    <Box
+                                        sx={{
+                                            width: '30px',
+                                            height: '24px',
+                                            bgcolor: item.color,
+                                            borderRadius: 1,
+                                        }}
+                                    />
+                                    <Typography variant="caption">{item.id}</Typography>
+                                </Paper>
                             ))}
-                        </div>
-                        <button className="nav-arrow">›</button>
-                    </div>
-                </div>
+                        </Box>
+                        <IconButton size="small" sx={{ bgcolor: 'white', border: '1px solid #ddd' }}>
+                            <ChevronRightIcon />
+                        </IconButton>
+                    </Box>
+                </Box>
 
-                {/* Footer Actions */}
-                <div className="footer-actions">
-                    <div className="pdf-icon-box">
-                        <span>PDF</span>
-                    </div>
-                    <button className="generate-report-btn">Generate Report</button>
-                    <div className="report-options">
-                        <label className="radio-label">
-                            <input type="radio" name="report" value="current" defaultChecked />
-                            <span className="radio-dot"></span>
-                            <span>Current Case</span>
-                        </label>
-                        <label className="radio-label">
-                            <input type="radio" name="report" value="all" />
-                            <span className="radio-dot"></span>
-                            <span>All Cases</span>
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        p: 2,
+                        borderTop: 1,
+                        borderColor: 'divider',
+                    }}
+                >
+                    <Box sx={{ bgcolor: '#dc3545', color: 'white', px: 1, py: 0.5, borderRadius: 1, fontSize: '0.7rem', fontWeight: 600, ml: 'auto' }}>
+                        <PictureAsPdfIcon sx={{ fontSize: 16, mr: 0.5 }} />
+                        PDF
+                    </Box>
+                    <Button
+                        variant="contained"
+                        sx={{
+                            bgcolor: '#dc3545',
+                            px: 4,
+                            py: 1.25,
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            '&:hover': {
+                                bgcolor: '#c82333',
+                                transform: 'translateY(-1px)',
+                                boxShadow: '0 4px 8px rgba(220, 53, 69, 0.3)',
+                            },
+                        }}
+                    >
+                        Generate Report
+                    </Button>
+                    <RadioGroup
+                        row
+                        value={reportType}
+                        onChange={(e) => setReportType(e.target.value)}
+                        sx={{ gap: 3 }}
+                    >
+                        <FormControlLabel value="current" control={<Radio size="small" />} label="Current Case" sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.85rem' } }} />
+                        <FormControlLabel value="all" control={<Radio size="small" />} label="All Cases" sx={{ '& .MuiFormControlLabel-label': { fontSize: '0.85rem' } }} />
+                    </RadioGroup>
+                </Box>
+            </Paper>
+        </Box>
     );
 };
 
