@@ -13,6 +13,9 @@ import
     RadioGroup,
     FormControlLabel,
     Paper,
+    Select,
+    MenuItem,
+    SelectChangeEvent,
 } from '@mui/material';
 import SaveIcon from '@mui/icons-material/Save';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -37,6 +40,7 @@ interface SeaStateData
     meanWaveDirection: string;
     significantWaveHeight: string;
     wavePeriod: string;
+    wavePeriodType: string;
 }
 
 interface LocationState
@@ -69,6 +73,7 @@ const Project: React.FC = () =>
         meanWaveDirection: state?.seaState?.meanWaveDirection || '',
         significantWaveHeight: state?.seaState?.significantWaveHeight || '',
         wavePeriod: state?.seaState?.wavePeriod || '',
+        wavePeriodType: '',
     });
 
     const handleVesselChange = (field: keyof VesselConditions) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -93,8 +98,28 @@ const Project: React.FC = () =>
     const seaStateConfig = [
         { label: 'Mean Wave Direction', field: 'meanWaveDirection' as keyof SeaStateData, unit: '[degree]', range: '0 absolute from the North in incoming direction' },
         { label: 'Significant Wave Height', field: 'significantWaveHeight' as keyof SeaStateData, unit: '[m]', range: 'value range [0-20 m]' },
-        { label: 'Wave Period', field: 'wavePeriod' as keyof SeaStateData, unit: '[s]', range: '' },
     ];
+
+    const wavePeriodOptions = [
+        { value: '3', label: '3 s' },
+        { value: '4', label: '4 s' },
+        { value: '5', label: '5 s' },
+        { value: '6', label: '6 s' },
+        { value: '7', label: '7 s' },
+        { value: '8', label: '8 s' },
+        { value: '9', label: '9 s' },
+        { value: '10', label: '10 s' },
+        { value: '11', label: '11 s' },
+        { value: '12', label: '12 s' },
+        { value: '13', label: '13 s' },
+        { value: '14', label: '14 s' },
+        { value: '15', label: '15 s' },
+    ];
+
+    const handleWavePeriodTypeChange = (event: SelectChangeEvent) => {
+        const value = event.target.value;
+        setSeaStateData(prev => ({ ...prev, wavePeriodType: value, wavePeriod: value }));
+    };
 
     const savedCases = [
         { id: '100316', color: '#4caf50' },
@@ -223,7 +248,7 @@ const Project: React.FC = () =>
                                 </Typography>
                                 <Paper sx={{ p: 2, border: '1px solid #e0e0e0' }}>
                                     {seaStateConfig.map((item, index) => (
-                                        <Box key={index} sx={{ mb: index < seaStateConfig.length - 1 ? 1 : 0 }}>
+                                        <Box key={index} sx={{ mb: 1 }}>
                                             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
                                                 <Typography variant="body2" sx={{ flex: 1, fontWeight: 500 }}>
                                                     {item.label}
@@ -267,6 +292,57 @@ const Project: React.FC = () =>
                                             )}
                                         </Box>
                                     ))}
+                                    <Box>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                                            <Select
+                                                size="small"
+                                                value={seaStateData.wavePeriodType}
+                                                onChange={handleWavePeriodTypeChange}
+                                                displayEmpty
+                                                sx={{
+                                                    flex: 1,
+                                                    maxWidth: '180px',
+                                                    fontSize: '0.85rem',
+                                                    fontWeight: 500,
+                                                    '& .MuiSelect-select': {
+                                                        py: 0.5,
+                                                    },
+                                                    '& .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: '#e0e0e0',
+                                                    },
+                                                }}
+                                                renderValue={() => 'Wave Period'}
+                                            >
+                                                {wavePeriodOptions.map((option) => (
+                                                    <MenuItem key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                <CheckCircleIcon sx={{ fontSize: 16, color: seaStateData.wavePeriod ? '#4caf50' : '#ccc' }} />
+                                                <TextField
+                                                    size="small"
+                                                    value={seaStateData.wavePeriod}
+                                                    onChange={handleSeaStateChange('wavePeriod')}
+                                                    InputProps={{
+                                                        endAdornment: (
+                                                            <Typography variant="caption" sx={{ color: '#666' }}>
+                                                                [s]
+                                                            </Typography>
+                                                        ),
+                                                        sx: { width: '120px', fontSize: '0.85rem' },
+                                                    }}
+                                                    sx={{
+                                                        '& .MuiInputBase-input': {
+                                                            textAlign: 'center',
+                                                            fontSize: '0.85rem',
+                                                        },
+                                                    }}
+                                                />
+                                            </Box>
+                                        </Box>
+                                    </Box>
                                 </Paper>
                             </Box>
 
